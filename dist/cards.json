@@ -1,0 +1,52 @@
+ {
+    "duke":{
+        "name":"duke",
+        "flipped":false,
+        "actions":[
+            "Tax"
+        ],
+        "counterActions":[    
+            "Block Foreign Aid"
+        ]
+    },
+    "assassin":{
+        "name":"assassin",
+        "flipped":false,
+        "actions":[
+            "Assassinate"
+        ],
+        "counterActions":[
+            
+        ]
+    },
+    "captain":{
+        "name":"captain",
+        "flipped":false,
+        "actions":[
+            "Steal"
+        ],
+        "counterActions":[
+            "Block Stealing"
+        ]
+    },
+    "ambassador":{
+        "name":"ambassador",
+        "flipped":false,
+        "actions":[
+            "Exchange"            
+        ],
+        "counterActions":[
+            "Block Stealing"
+        ]
+    },
+    "contessa":{
+        "name":"contessa",
+        "flipped":false,
+        "actions":[
+            
+        ],
+        "counterActions":[
+            "Block Assassination"
+        ]
+    }
+ }

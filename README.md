@@ -59,5 +59,7 @@ In the [release/server] folder, you will find the back-end server. This is alrea
 
 In the [release/ui] folder, you will find the UI. Double click on the "index.html" to open up the GUI in a browser window
 
+PS: Make sure to actually extract the ZIP folder you get from Github otherwise you may see a blank screen
+
 After that, you should be good to go!
 
