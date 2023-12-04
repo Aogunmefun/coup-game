@@ -51,11 +51,13 @@ do is store all cards and actioins in one file and just store a reference to the
 
 # Installation Instructions
 
-The game runs in two seperate places. One will be the back-end, responsible for the game logic. Second is the front-end which contains the UI for the game.
+The game runs in two seperate places. One will be the back-end, responsible for the game logic. Second is the front-end which contains the UI for the game. These are all in the  [release] folder.
 
-In the [dist] folder, you will find the back-end server. This is already compiled into an executable file that can be launched simply by double clicking on the file.  
+Inside thes folders, you'll find:
 
-In the [gui/build] folder, you will find the UI. Double click on the "index.html" to open up the GUI in a browser window
+In the [release/server] folder, you will find the back-end server. This is already compiled into an executable file that can be launched simply by double clicking on the file.  
 
-After that, you should be good to go
+In the [release/ui] folder, you will find the UI. Double click on the "index.html" to open up the GUI in a browser window
+
+After that, you should be good to go!
 
