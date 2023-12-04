@@ -1,13 +1,12 @@
 
-# This is the player class which describes a the main characteristics of each player and what "actions" they have available as well as what is in their "inventory"
-# The class also provides a way to add, modify, and remove cards from the players "inventory"
-
+# This is the player class which describes a the main characteristics of each player and the contents of their "inventory"
+# It effectively monitors the state of each player
 
 
 
 class Player:
     # The initialization of a player is done by passing information about what type of player they are (human or AI), 
-    # their "player index" (eg. player1, player2 etc), and their starting cards
+    # and their "player index" (eg. player1, player2 etc]]]]]
     def __init__(self, human, index): 
         self.human = human
         self.index = index
@@ -26,6 +25,12 @@ class Player:
 
     def flipCard(self, cardIndex):
         self.inventory["cards"][cardIndex]["flipped"] = True
+
+    def getFlipped(self):
+        res = []
+        for ind in range(len(self.inventory["cards"])):
+            if self.inventory["cards"][ind]["flipped"]: res.append(ind)
+        return res
     
     def addCoins(self, coins):
         self.inventory["coins"] += coins

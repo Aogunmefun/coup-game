@@ -1,0 +1,81 @@
+.player-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+
+  }
+
+  .right-player-ui {
+    flex-direction: row;
+  }
+
+  .left-player-ui {
+    flex-direction: row-reverse;
+  }
+  
+  .card-slots {
+    display: flex;
+    flex-wrap: wrap;
+    
+    justify-content: center;
+    gap: 10px;
+  }
+  .side-card-slots {
+    flex-direction: column;
+    align-content: flex-start;
+  }
+  
+  .card-slot {
+    width: 100px;
+    height: 150px;
+    border: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+  }
+  .side-card-slot {
+    width: 150px;
+    height: 100px;
+  }
+  
+  .card-slot.face-up {
+    background-color: #e6e6e6;
+  }
+  
+  .card-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    
+  }
+  .right-card-info {
+    transform: rotate(-90deg);
+  }
+  .left-card-info {
+    transform: rotate(90deg);
+  }
+
+  .coin-slot {
+    margin-top: 10px;
+  }
+  .right-coin-slot {
+    transform: rotate(-90deg);
+  }
+  .left-coin-slot {
+    transform: rotate(90deg);
+  }
+
+  
+  
+  .hover-popup {
+    position: absolute;
+    top: -100px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-width: 200px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 3;
+  }

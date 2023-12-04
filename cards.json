@@ -1,52 +1,52 @@
-cards = {
+ {
     "duke":{
         "name":"duke",
-        "flipped":False,
+        "flipped":false,
         "actions":[
             "Tax"
         ],
-        "counter-actions":[    
+        "counterActions":[    
             "Block Foreign Aid"
         ]
     },
     "assassin":{
         "name":"assassin",
-        "flipped":False,
+        "flipped":false,
         "actions":[
-            "Assassinate",
+            "Assassinate"
         ],
-        "counter-actions":[
+        "counterActions":[
             
         ]
     },
     "captain":{
         "name":"captain",
-        "flipped":False,
+        "flipped":false,
         "actions":[
             "Steal"
         ],
-        "counter-actions":[
+        "counterActions":[
             "Block Stealing"
         ]
     },
     "ambassador":{
         "name":"ambassador",
-        "flipped":False,
+        "flipped":false,
         "actions":[
-            "Exchange",            
+            "Exchange"            
         ],
-        "counter-actions":[
+        "counterActions":[
             "Block Stealing"
         ]
     },
     "contessa":{
         "name":"contessa",
-        "flipped":False,
+        "flipped":false,
         "actions":[
             
         ],
-        "counter-actions":[
+        "counterActions":[
             "Block Assassination"
         ]
     }
-}
+ }

@@ -1,12 +1,20 @@
 # This is the "Game" class that contains all the methods that affect the game state
+# It's where most of the logic takes place.
 # It imports the "Player" class which allows us to simplify code and make it a little cleaner and modular
-# Basically, the "Player" class is a class of its own which has methods that impact the state of the individual player
+# Basically, the "Player" class has methods that impact the state of the individual player
 # The "Game" class can then focus on logic that affects the entire game
 
 
-from cards import cards # Import the "cards" dictionary to allow access to all card types
+# Import the "cards" dictionary to allow access to all card types
 import player # Import the "Player" class to help abstract lower level player logic
 import random
+from actions import *
+from counterActions import *
+import json
+import copy
+
+cardsFile = open('cards.json')
+cards = json.load(cardsFile)
 
 class Game:
     def __init__(self, copiesPerCard: int, startingCoins: int, numPlayers: int):
@@ -28,56 +36,52 @@ class Game:
             self.players[i].inventory["coins"] += 2 # Give them 2 coins
             self.bank -=2 # Take 2 coins from the bank
             rand = random.randint(0, len(self.cardStack)-1)
-            self.players[i].addCard(self.cardStack[rand])
+            self.players[i].addCard(copy.copy(self.cardStack[rand]))
             self.cardStack.pop(rand)
             rand = random.randint(0, len(self.cardStack)-1)
-            self.players[i].addCard(self.cardStack[rand])
+            self.players[i].addCard(copy.copy(self.cardStack[rand]))
             self.cardStack.pop(rand)
         
-        self.actions = [
-           {
-               "name": "Tax",
-               "description":"Take 3 coins from the Treasury."
-           },
-           {
-               "name":"Assassinate",
-               "description":"Pay 3 coins to the Treasury and launch an assassination against another player. If successful that player immediately loses an influence. (Can be blocked by the Contessa)"
-           },
-           {
-               "name":"Steal",
-               "description":"Take 2 coins from another player. If they only have one coin, take only one. (Can be blocked by the Ambassador or the Captain)"
-           },
-           {
-               "name":"Exchange",
-               "description":"Exchange cards with the Court. First take 2 random cards from the Court deck. Choose which, if any, to exchange with your face-down cards. Then return two cards to the Court deck."
-           }
-                     
-        ]
+        self.round = 1 # Variable representing the current round
+        self.turn = 0  # This is the index of the player who's turn it currently is
+        self.phase = "Action" # This represents the phase of the game ('action available' (1), 'counter action available' (2), 'challenge available (3))
+        self.activePlayers = [0, 1, 2, 3]
 
-        self.counterActions = [
-            {
-                "name":"Block Foreign Aid",
-                "description":"Any player claiming the Duke may counteract and block a player attempting to collect foreign aid. The player trying to gain foreign aid receives no coins that turn"
-            },
-            {
-                "name":"Block Assassination",
-                "description":"The player who is being assassinated may claim the Contessa and counteract to block the assassination. The assassination fails but the fee paid by the player for the assassin remains spent"
-            },
-            {
-                "name":"Block Stealing",
-                "description":"The player who is being stolen from may claim either the Ambassador or the Captain and counteract to block the steal. The player trying to steal receives no coins that turn"
-            }
-        ]
 
     # Most important function in game logic. This decides the outcome of each round
-    # "decisions" represents a json object (dictionary) of the three different choices (action, counter-action, or challenge) and the associated players who made those choices
+    # There are a maximum of 3 different choices that can happen (action, counter-action, and challenge)
+    # "decisions" represents a json object (dictionary) sent from the front-end of those choices and the associated players who made those choices. Example json object below
+    # {
+    #     "action": {
+    #         "player":0, This represents the index of the player that made the choice
+    #         "name":"Assassinate", This represents the name of the choice that was made (eg. assassinate, steal etc.)
+    #         "cardFlip":1,
+    #         "target":1, This represents the target of the choice that was made (if there was one)
+    #     },
+    #     "counterAction":{
+    #         "player":1,
+    #         "cardFlip":1,
+    #         "target":0,
+    #         "name":"Block Assassination"
+            
+    #     },
+    #     "challenge": {
+    #         "player": 2,
+    #         "cardFlip":0,
+    #         "target":0
+    #     }
+    # }
     # The way it works is that we first check for a challenge (either on the action or the counter-action)
+    # Then we deal with the counter-action and action
+    # The "losers" array will store the index of players who lost influence and need to have their cards flipped (either by losing a challenge, or being the target of an action)
     def outcome(self, decisions):
+        print("decisions", decisions)
 
-        losers = [] # Variable to store the player index that represents the loser of the challenge
+        losers = [] # Variable to store the player index's that represents the players who lost influence
         exchange = False
 
         # Let's deduct any money that needs to be deducted for the action (money is deducted whether the action suceeds or not)
+        # In this case, only assassinations require money to be spent
         if decisions["action"]["name"] == "Assassinate": # If the action name is assassinate
             playerInitiatorIndex = decisions["action"]["player"] # Find the index of the player requesting the action
             self.players[playerInitiatorIndex].inventory["coins"] -= 3 # subtract the required number of coins from their inventory
@@ -85,64 +89,90 @@ class Game:
 
 
         # Deal with any challenges first
-        if decisions["challenge"]:
+        if decisions["challenge"]: # Check if the "challenge" field is populated (i.e. a challenge was made) 
             print("Evaluating Challenge...")
-            playerTargetIndex = decisions["challenge"]["target"]
-            playerTargetAction = decisions["action"]["name"] if decisions["action"]["player"] == playerTargetIndex else decisions["counterAction"]["name"]
-            playerTagetCardFlipOption = decisions["action"]["cardFlip"] if decisions["action"]["player"] == playerTargetIndex else decisions["counterAction"]["cardFlip"]
-            playerInitiatorIndex = decisions["challenge"]["player"]
-            succ = True
-            for playerCard in self.players[playerTargetIndex].inventory["cards"]:
-                if playerTargetAction in playerCard["actions"] or playerTargetAction in playerCard["counter-actions"]:
+            playerTargetIndex = decisions["challenge"]["target"] # Index of the Target for the "challenge"
+            # Figuring out the name of the choice the target player made (e.g. assasinate, block stealing etc.)
+            # Let's try to match the targetted player's index with the index of the player who either made an "action" or "counter-action"
+            playerTargetChoiceName = decisions["action"]["name"] if decisions["action"]["player"] == playerTargetIndex else decisions["counterAction"]["name"]
+            playerInitiatorIndex = decisions["challenge"]["player"] # The index of the player making the "challenge"
+            succ = True # Assume challenge is successful until proven otherwise
+            for playerCard in self.players[playerTargetIndex].inventory["cards"]: # Iterate through target players card list and see if they have the right cards
+                if (playerTargetChoiceName in playerCard["actions"] or playerTargetChoiceName in playerCard["counterActions"]) and not playerCard["flipped"]:
                     succ = False
             if succ:
-                # self.players[playerTargetIndex].inventory["cards"][playerTagetCardFlipOption]["flipped"] = True 
-                losers.append(playerTargetIndex)
+                losers.append(playerTargetIndex) # If successful, add the target player to the "losers" array
+                self.players[playerTargetIndex].flipCard(0 if 1 in self.players[playerTargetIndex].getFlipped() else 1)
+                # self.players[playerTargetIndex].flipCard(0)
+                # print("Challenge Successful", playerTargetIndex, playerInitiatorIndex, self.players["cards"])
+                print("Challenge Successful...")
             else:
-                # self.players[playerInitiatorIndex].inventory["cards"][decisions["challenge"]["cardFlip"]]["flipped"] = True
-                losers.append(playerInitiatorIndex)
-            print("loser", losers)
-
+                losers.append(playerInitiatorIndex) # If unsuccessful, add the player who challenged to the "losers" array 
+                self.players[playerInitiatorIndex].flipCard(0 if 1 in self.players[playerInitiatorIndex].getFlipped() else 1)
+                # self.players[playerInitiatorIndex].flipCard(0)
+                # print("Challenge Failed",, self.players[1].inventory["cards"], self.players[2].inventory["cards"])
+                print("Challenge Failed...")
+            print(self.players[0].inventory["cards"])
+            print(self.players[1].inventory["cards"])
+            print(self.players[2].inventory["cards"])
+            print("stak", self.cardStack)
 
 
         # Deal with Actions and Counter Actions Second
-        if decisions["counterAction"] and decisions["counterAction"]["player"] not in losers:
-            print("Evaluating Counter Action....")
-            playerTargetIndex = decisions["counterAction"]["target"]
-            playerTargetAction = decisions["action"]["name"]
-            playerInitiatorIndex = decisions["counterAction"]["player"]
-        if decisions["action"] and decisions["action"]["player"] not in losers:
-            if decisions["action"]["name"] == "Tax":
-                self.players[decisions["action"]["player"]].addCoins(3)
-                self.bank -= 3
-            elif decisions["action"]["name"] == "Assassinate":
-                losers.append(decisions["action"]["target"])
-            elif decisions["action"]["name"] == "steal":
-                if self.players[decisions["action"]["player"]].inventory["coins"] == 1:
-                    self.players[decisions["action"]["player"]].addCoins(1)
-                    self.players[decisions["action"]["target"]].removeCoins(1)
-                else:
-                    self.players[decisions["action"]["player"]].addCoins(2)
-                    self.players[decisions["action"]["target"]].removeCoins(2)
-            elif decisions["action"]["name"] == "Exchange":
-                exchange = True
-            elif decisions["action"]["name"] == "Income":
-                self.players[decisions["action"]["player"]].addCoins(1)
-                self.bank -= 1
-            elif decisions["action"]["name"] == "Foreign Aid":
-                self.players[decisions["action"]["player"]].addCoins(2)
-                self.bank -= 2
-            elif decisions["action"]["name"] == "Coup":
-                self.players[decisions["action"]["player"]].removeCoins(7)
-                self.bank += 7
-                losers.append(decisions["action"]["target"])
+        if decisions["counterAction"] and decisions["counterAction"]["player"] not in losers: # If there is a "counter-action" and the player is not in the "losers" variable
+            # If a "counter-action" is successful, there's nothing else to be done. The action is automatically blocked by the if-else statement, and we've already accounted for lost coins
+            pass
+        else: # If there was no "counter-action" or the player who made it was in the "losers" array, then the action has to proceed
+            if decisions["action"] and decisions["action"]["player"] not in losers: # Making sure that there actually was an action done and that the player making it didn't lose a challenge
+                if decisions["action"]["name"] == "Tax": # If the action name was Tax
+                    self.players[decisions["action"]["player"]].addCoins(3) # Add coins to player
+                    self.bank -= 3 # Take coins from bank
+                elif decisions["action"]["name"] == "Assassinate": # If action name was Assassinate
+                    losers.append(decisions["action"]["target"]) # Add the targeted player to the "losers" array, since the target player needs to lose an influence point
+                    self.players[decisions["action"]["target"]].flipCard(0 if 1 in self.players[decisions["action"]["target"]].getFlipped() else 1)
+                elif decisions["action"]["name"] == "Steal": # If action name was steal
+                    if self.players[decisions["action"]["player"]].inventory["coins"] == 1: # Making sure there are enough coins in the target players inventory
+                        self.players[decisions["action"]["player"]].addCoins(1) # Add only one coin to players inventory since the target player only has one coin to give
+                        self.players[decisions["action"]["target"]].removeCoins(1) # Remove coins from target players inventory
+                    else: # If the target player has more than one coin
+                        self.players[decisions["action"]["player"]].addCoins(2) # Add 2 coins to players inventory 
+                        self.players[decisions["action"]["target"]].removeCoins(2) # Remove 2 coins from target players inventory
+                # elif decisions["action"]["name"] == "Exchange": # If action name is exchange
+                #     exchange = True # Set exchange flag to true
+                #     exchangePlayerIndex = decisions["action"]["player"] # Set the index of the player who needs to perform an exchange
+                elif decisions["action"]["name"] == "Income": # If action name is income
+                    self.players[decisions["action"]["player"]].addCoins(1) # Add one coin to players inventory
+                    self.bank -= 1 # Take one coin from bank
+                elif decisions["action"]["name"] == "Foreign Aid": # If action name is Foreign Aid
+                    self.players[decisions["action"]["player"]].addCoins(2) # Add 2 coins to players inventory
+                    self.bank -= 2 # Take 2 coins from bank
+                elif decisions["action"]["name"] == "Coup": # If players action name is Coup
+                    self.players[decisions["action"]["player"]].removeCoins(7) # Remove 7 coins from players inventory
+                    self.bank += 7 # Add 7 coins to the bank
+                    losers.append(decisions["action"]["target"]) # Add the target player for the action to the losers array
 
-        return losers, exchange
-            
+        # ****************Check to see if any players are out of the game. Iterate through all the players, and check if any of them have more that one card flipped************
+        for ind in range(len(self.players)):
+            if len(self.players[ind].getFlipped()) > 1 and ind in self.activePlayers:
+                self.activePlayers.remove(ind)
 
+        # [0, 1, 2, 3]
+        # [0, 3,]
 
+        self.round+=1
+        self.turn = self.turn+1 if self.turn < self.activePlayers[-1] else self.activePlayers[0]
+        while self.turn not in self.activePlayers:
+            self.turn+=1
+        
+        self.phase = "Action"
 
-        # print(decisions["action"])
+        possibleActions = copy.copy(actions)
+        playerCoins = self.players[self.turn].inventory["coins"]
+        if playerCoins > 10:
+            possibleActions = possibleActions[4]
+        else:
+            for a in possibleActions:
+                if a["coins"]>playerCoins:
+                    possibleActions.remove(a)
+        return losers, exchange, self.activePlayers, possibleActions
 
-
-# game = Game(copiesPerCard=3, startingCoins=request.get_json()["startingCoins"], numPlayers=request.get_json()["numPlayers"])

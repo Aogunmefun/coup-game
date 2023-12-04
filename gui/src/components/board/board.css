@@ -1,0 +1,159 @@
+.game-board {
+    display: flex;
+    height: 100vh;
+    justify-content: space-between;
+    align-items: center;
+    /* width: 100%; */
+  }
+  
+  .player {
+    position: relative;
+    transform-origin: center;
+    display: flex;
+    /* width: 100%; */
+  }
+  
+  .player:nth-child(1) {
+    transform: rotate(180deg);
+    position: absolute;
+    top: 50px;
+    width: 100%;
+    justify-content: center;
+    /* left: 50vw; */
+  }
+  .player:nth-child(2) {
+    /* transform: rotate(-90deg); */
+    /* width: fit-content; */
+    height: 100%;
+    position: absolute;
+    top: 0;
+    /* right: 50px; */
+    right: 0;
+    justify-content: center;
+  }
+  .player:nth-child(3) {
+    transform: rotate(0);
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    justify-content: center;
+    /* left: 50vw; */
+  }
+  
+  
+  .player.left:nth-child(4) {
+    /* transform: rotate(90deg); */
+    position: absolute;
+    top: 0;
+    left: 0px;
+    height: 100%;
+    align-items: center;
+    
+  }
+
+  .chest {
+    position: absolute;
+    /* top: 50%; */
+    left: calc(50% - 250px);
+    /* transform: translate(50vw,0); */
+    width: 500px;
+    height: 200px;
+    border: 1px solid var(--blue);
+    border-radius: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 100px;
+  }
+  
+  .bank {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: gray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+  }
+
+  .deck {
+    width: 100px;
+    height: 150px;
+    background-color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    border-radius: 0.5rem;
+  }
+
+  .game-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    position: fixed;
+    top: 10px;
+    left: 20px;
+  }
+
+  .board-buttons  {
+    position: absolute;
+    top: 120px;
+    left: 10px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 5px;
+    z-index: 2;
+    width: 300px;
+  }
+
+  .board-buttons  > button {
+    padding: 20px;
+    background-color: var(--blue);
+    color: white;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .board-buttons > button:hover {
+    background-color: var(--darkBlue);
+    cursor: pointer;
+  }
+
+  .btn--resolve {
+    position: absolute;
+    top: 120px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    z-index: 2;
+    padding: 20px;
+    background-color: var(--blue);
+    color: white;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+  }
+
+  .btn--resolve:hover {
+    cursor: pointer;
+    background-color: var(--darkBlue);
+  }
+  
+  .board-menu {
+    position: absolute;
+    top: 20px;
+    right: 100px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+  }
+  

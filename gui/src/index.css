@@ -1,0 +1,33 @@
+*::before,*::after,* {
+    margin: 0;
+    border: none;
+    outline: none;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  * {
+    font-family: 'system-ui';
+  }
+
+  p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s;
+  }
+  
+  :root {
+    --blue:rgb(37, 150, 190);
+    --darkBlue:rgb(23, 91, 116);
+    --yellow:#ffcc00;
+  }
+  
